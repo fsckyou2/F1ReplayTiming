@@ -340,7 +340,7 @@ export default function ReplayPage() {
                 trackPoints={trackPoints}
                 rotation={rotation}
                 trackStatus={trackStatus}
-                drivers={drivers.filter((d) => !d.retired && !d.no_timing && (d.x !== 0 || d.y !== 0)).map((d) => ({
+                drivers={drivers.filter((d) => !d.retired && !d.no_timing && !d.in_pit && (d.x !== 0 || d.y !== 0)).map((d) => ({
                   abbr: d.abbr,
                   x: d.x,
                   y: d.y,
@@ -551,7 +551,7 @@ export default function ReplayPage() {
                     trackPoints={trackPoints}
                     rotation={rotation}
                     trackStatus={trackStatus}
-                    drivers={drivers.filter((d) => !d.retired && !d.no_timing && (d.x !== 0 || d.y !== 0)).map((d) => ({
+                    drivers={drivers.filter((d) => !d.retired && !d.no_timing && !d.in_pit && (d.x !== 0 || d.y !== 0)).map((d) => ({
                       abbr: d.abbr,
                       x: d.x,
                       y: d.y,

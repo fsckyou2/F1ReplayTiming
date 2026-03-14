@@ -77,6 +77,12 @@ export default function TrackCanvas({ trackPoints, rotation, trackStatus = "gree
         entry.duration = duration;
       }
     }
+
+    // Prune entries for drivers no longer present so they snap on re-entry
+    const currentAbbrs = new Set(drivers.map((d) => d.abbr));
+    for (const abbr of posRef.current.keys()) {
+      if (!currentAbbrs.has(abbr)) posRef.current.delete(abbr);
+    }
   }, [drivers]);
 
   // Continuous animation loop
