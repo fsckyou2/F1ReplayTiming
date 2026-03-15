@@ -18,6 +18,10 @@ interface Props {
 // when the next target arrives - the more overlap, the smoother the motion
 const BASE_INTERP_MS = 750;
 
+// If the new target is further than this from the current visual position,
+// snap instead of interpolating (handles data gaps and first-appearance jumps)
+const SNAP_DISTANCE = 0.15;
+
 interface PosEntry {
   prevX: number;
   prevY: number;
@@ -66,16 +70,29 @@ export default function TrackCanvas({ trackPoints, rotation, trackStatus = "gree
           duration,
         });
       } else {
-        // Start new interpolation from current visual position
+        // Compute current visual position mid-interpolation
         const elapsed = now - entry.startTime;
         const t = Math.min(elapsed / entry.duration, 1);
-        entry.prevX = entry.prevX + (entry.targetX - entry.prevX) * t;
-        entry.prevY = entry.prevY + (entry.targetY - entry.prevY) * t;
-        entry.targetX = drv.x;
-        entry.targetY = drv.y;
+        const curX = entry.prevX + (entry.targetX - entry.prevX) * t;
+        const curY = entry.prevY + (entry.targetY - entry.prevY) * t;
+        const dist = Math.hypot(drv.x - curX, drv.y - curY);
+        if (dist > SNAP_DISTANCE) {
+          // Large jump (data gap or initial appearance) - snap, don't fly
+          entry.prevX = drv.x; entry.prevY = drv.y;
+          entry.targetX = drv.x; entry.targetY = drv.y;
+        } else {
+          entry.prevX = curX; entry.prevY = curY;
+          entry.targetX = drv.x; entry.targetY = drv.y;
+        }
         entry.startTime = now;
         entry.duration = duration;
       }
+    }
+
+    // Prune entries for drivers no longer present so they snap on re-entry
+    const currentAbbrs = new Set(drivers.map((d) => d.abbr));
+    for (const abbr of posRef.current.keys()) {
+      if (!currentAbbrs.has(abbr)) posRef.current.delete(abbr);
     }
   }, [drivers]);
 
